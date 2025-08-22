@@ -1,0 +1,50 @@
+{
+  "name": "semirp-backend",
+  "version": "1.0.0",
+  "description": "Backend API pour l'application semirp - Communication entre frontend et serveur Minecraft",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "dev:standalone": "node --watch src/scripts/dev-no-services.js",
+    "db:migrate": "prisma migrate dev",
+    "db:generate": "prisma generate",
+    "db:seed": "node src/seeders/index.js",
+    "db:reset": "prisma migrate reset && npm run db:seed",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "backend",
+    "api",
+    "minecraft",
+    "websocket",
+    "rest"
+  ],
+  "author": "xam42",
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/client": "^5.19.1",
+    "axios": "^1.11.0",
+    "bcrypt": "^5.1.1",
+    "connect-redis": "^7.1.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.4.0",
+    "express-session": "^1.18.0",
+    "helmet": "^7.1.0",
+    "http-status-codes": "^2.3.0",
+    "morgan": "^1.10.0",
+    "redis": "^4.7.0",
+    "socket.io": "^4.7.5",
+    "socket.io-client": "^4.8.1",
+    "winston": "^3.14.2",
+    "xss": "^1.0.15",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@faker-js/faker": "^8.4.1",
+    "prisma": "^5.19.1"
+  }
+}

@@ -1,0 +1,388 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// Enums
+enum OwnerType {
+  COMPANY
+  USER
+}
+
+enum UserCompanyStatus {
+  EMPLOYEE
+  OWNER
+}
+
+enum Biome {
+  BADLANDS
+  BAMBOO_JUNGLE
+  BASALT_DELTAS
+  BEACH
+  BIRCH_FOREST
+  CHERRY_GROVE
+  COLD_OCEAN
+  CRIMSON_FOREST
+  CUSTOM
+  DARK_FOREST
+  DEEP_COLD_OCEAN
+  DEEP_DARK
+  DEEP_FROZEN_OCEAN
+  DEEP_LUKEWARM_OCEAN
+  DEEP_OCEAN
+  DESERT
+  DRIPSTONE_CAVES
+  END_BARRENS
+  END_HIGHLANDS
+  END_MIDLANDS
+  ERODED_BADLANDS
+  FLOWER_FOREST
+  FOREST
+  FROZEN_OCEAN
+  FROZEN_PEAKS
+  FROZEN_RIVER
+  GROVE
+  ICE_SPIKES
+  JAGGED_PEAKS
+  JUNGLE
+  LUKEWARM_OCEAN
+  LUSH_CAVES
+  MANGROVE_SWAMP
+  MEADOW
+  MUSHROOM_FIELDS
+  NETHER_WASTES
+  OCEAN
+  OLD_GROWTH_BIRCH_FOREST
+  OLD_GROWTH_PINE_TAIGA
+  OLD_GROWTH_SPRUCE_TAIGA
+  PLAINS
+  RIVER
+  SAVANNA
+  SAVANNA_PLATEAU
+  SMALL_END_ISLANDS
+  SNOWY_BEACH
+  SNOWY_PLAINS
+  SNOWY_SLOPES
+  SNOWY_TAIGA
+  SOUL_SAND_VALLEY
+  SPARSE_JUNGLE
+  STONY_PEAKS
+  STONY_SHORE
+  SUNFLOWER_PLAINS
+  SWAMP
+  TAIGA
+  THE_END
+  THE_VOID
+  WARM_OCEAN
+  WARPED_FOREST
+  WINDSWEPT_FOREST
+  WINDSWEPT_GRAVELLY_HILLS
+  WINDSWEPT_HILLS
+  WINDSWEPT_SAVANNA
+  WOODED_BADLANDS
+}
+
+enum ZoneStatus {
+  ACTIVE
+  CANCELLED
+  EXPIRED
+  PENDING
+}
+
+enum World {
+  DEFAULT
+  END
+  NETHER
+  WORLD_RESOURCE
+}
+
+// Models
+model User {
+  id        String   @id @db.Char(36)
+  createdAt DateTime? @map("created_at") @db.DateTime(6)
+  updatedAt DateTime? @map("updated_at") @db.DateTime(6)
+  isActive  Boolean? @map("is_active") @db.Bit(1)
+  name      String?  @db.VarChar(36)
+  password  String?  @db.VarChar(64)
+
+  // Relations
+  bankAccounts     BankAccount[]
+  containers       Container[]
+  containerHistory ContainerHistory[]
+  driveOrders      DriveOrder[]
+  userCompanies    UserCompany[]
+  playerZoneState  PlayerZoneState?
+
+  @@map("user")
+}
+
+model Company {
+  id        String   @id @db.Char(36)
+  createdAt DateTime? @map("created_at") @db.DateTime(6)
+  updatedAt DateTime? @map("updated_at") @db.DateTime(6)
+  isActive  Boolean? @map("is_active") @db.Bit(1)
+  level     Int?
+  name      String?  @db.VarChar(64)
+
+  // Relations
+  bankAccounts  BankAccount[]
+  containers    Container[]
+  userCompanies UserCompany[]
+
+  @@map("company")
+}
+
+model BankAccountType {
+  id           BigInt  @id @default(autoincrement())
+  interestRate Decimal @map("interest_rate") @db.Decimal(5, 4)
+  limit        Decimal @db.Decimal(19, 4)
+  name         String  @db.VarChar(255)
+
+  // Relations
+  bankAccounts BankAccount[]
+
+  @@map("bank_account_type")
+}
+
+model BankAccount {
+  id        String     @id @db.VarChar(8)
+  createdAt DateTime?  @map("created_at") @db.DateTime(6)
+  updatedAt DateTime?  @map("updated_at") @db.DateTime(6)
+  balance   Decimal    @db.Decimal(19, 4)
+  isActive  Boolean?   @map("is_active") @db.Bit(1)
+  isDefault Boolean?   @map("is_default") @db.Bit(1)
+  ownerType OwnerType? @map("owner_type")
+
+  // Foreign keys
+  bankAccountTypeId BigInt? @map("bank_account_type_id")
+  companyId         String? @map("company_id") @db.Char(36)
+  userId            String? @map("user_id") @db.Char(36)
+
+  // Relations
+  bankAccountType BankAccountType? @relation(fields: [bankAccountTypeId], references: [id])
+  company         Company?         @relation(fields: [companyId], references: [id])
+  user            User?            @relation(fields: [userId], references: [id])
+
+  @@map("bank_account")
+}
+
+model Container {
+  id           BigInt    @id @default(autoincrement())
+  createdAt    DateTime? @map("created_at") @db.DateTime(6)
+  updatedAt    DateTime? @map("updated_at") @db.DateTime(6)
+  content      String?   @db.Text
+  hologramText String?   @map("hologram_text") @db.VarChar(255)
+  name         String    @unique @db.VarChar(50)
+  pluginKey    String?   @map("plugin_key") @db.VarChar(50)
+  statuses     String?   @db.Text
+  worldName    String?   @map("world_name") @db.VarChar(255)
+  xCoord       Float?    @map("x_coord")
+  yCoord       Float?    @map("y_coord")
+  zCoord       Float?    @map("z_coord")
+
+  // Foreign keys
+  companyId String? @map("company_id") @db.Char(36)
+  userId    String? @map("user_id") @db.Char(36)
+
+  // Relations
+  company          Company?           @relation(fields: [companyId], references: [id])
+  user             User?              @relation(fields: [userId], references: [id])
+  containerHistory ContainerHistory[]
+
+  @@map("container")
+}
+
+model ContainerHistory {
+  id          BigInt    @id @default(autoincrement())
+  createdAt   DateTime? @map("created_at") @db.DateTime(6)
+  updatedAt   DateTime? @map("updated_at") @db.DateTime(6)
+  content     String    @db.Text
+  containerId BigInt    @map("container_id")
+  userId      String    @map("user_id") @db.Char(36)
+
+  // Relations
+  container Container @relation(fields: [containerId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
+
+  @@map("container_history")
+}
+
+model ItemReference {
+  id              BigInt  @id @default(autoincrement())
+  category        String? @db.VarChar(255)
+  customModelData Int?    @map("custom_model_data")
+  description     String? @db.Text
+  displayName     String? @map("display_name") @db.VarChar(255)
+  extraTags       Json?   @map("extra_tags")
+  itemBase64      String? @map("item_base64") @db.Text
+  material        String  @db.VarChar(255)
+  referenceId     String  @unique @map("reference_id") @db.VarChar(255)
+  urlImage        String? @map("url_image") @db.VarChar(255)
+
+  // Relations
+  driveAvailableItems DriveAvailableItem?
+  driveOrderItems     DriveOrderItem[]
+  marketPrice         MarketPrice?
+  marketPriceHistory  MarketPriceHistory[]
+
+  @@map("item_reference")
+}
+
+model DriveAvailableItem {
+  id              BigInt    @id @default(autoincrement())
+  createdAt       DateTime? @map("created_at") @db.DateTime(6)
+  updatedAt       DateTime? @map("updated_at") @db.DateTime(6)
+  price           Decimal   @db.Decimal(19, 4)
+  itemReferenceId BigInt    @unique @map("item_reference_id")
+
+  // Relations
+  itemReference ItemReference @relation(fields: [itemReferenceId], references: [id])
+
+  @@map("drive_available_item")
+}
+
+model DriveOrder {
+  id          BigInt     @id @default(autoincrement())
+  createdAt   DateTime?  @map("created_at") @db.DateTime(6)
+  updatedAt   DateTime?  @map("updated_at") @db.DateTime(6)
+  delivered   Boolean    @db.Bit(1)
+  deliveredAt DateTime?  @map("delivered_at") @db.DateTime(6)
+  userId      String     @map("user_id") @db.Char(36)
+
+  // Relations
+  user            User             @relation(fields: [userId], references: [id])
+  driveOrderItems DriveOrderItem[]
+
+  @@map("drive_order")
+}
+
+model DriveOrderItem {
+  id              BigInt @id @default(autoincrement())
+  quantity        Int
+  driveOrderId    BigInt @map("drive_order_id")
+  itemReferenceId BigInt @map("item_reference_id")
+
+  // Relations
+  driveOrder    DriveOrder    @relation(fields: [driveOrderId], references: [id])
+  itemReference ItemReference @relation(fields: [itemReferenceId], references: [id])
+
+  @@map("drive_order_item")
+}
+
+model MarketPrice {
+  lastUpdated     DateTime @map("last_updated") @db.DateTime(6)
+  price           Decimal  @db.Decimal(19, 4)
+  itemReferenceId BigInt   @id @map("item_reference_id")
+
+  // Relations
+  itemReference ItemReference @relation(fields: [itemReferenceId], references: [id])
+
+  @@map("market_price")
+}
+
+model MarketPriceHistory {
+  id              BigInt   @id @default(autoincrement())
+  createdAt       DateTime @map("created_at") @db.DateTime(6)
+  demand          Int
+  price           Decimal  @db.Decimal(19, 4)
+  supply          Int
+  itemReferenceId BigInt   @map("item_reference_id")
+
+  // Relations
+  itemReference ItemReference @relation(fields: [itemReferenceId], references: [id])
+
+  @@map("market_price_history")
+}
+
+model PlayerZoneState {
+  playerUuid              String    @id @db.Char(36)
+  disconnectedAt          DateTime? @map("disconnectedAt") @db.DateTime(6)
+  inventoryAtDisconnect   String?   @map("inventoryAtDisconnect") @db.Text
+  inventoryBefore         String    @map("inventoryBefore") @db.Text
+  inventoryFiltered       String?   @map("inventoryFiltered") @db.Text
+  zoneId                  BigInt    @map("zone_id")
+
+  // Relations
+  user User @relation(fields: [playerUuid], references: [id])
+  zone Zone @relation(fields: [zoneId], references: [id])
+
+  @@map("player_zone_state")
+}
+
+model UserCompany {
+  companyId String            @map("company_id") @db.Char(36)
+  userId    String            @map("user_id") @db.Char(36)
+  createdAt DateTime?         @map("created_at") @db.DateTime(6)
+  updatedAt DateTime?         @map("updated_at") @db.DateTime(6)
+  isActive  Boolean?          @map("is_active") @db.Bit(1)
+  salary    Decimal           @db.Decimal(19, 4)
+  status    UserCompanyStatus
+
+  // Relations
+  company Company @relation(fields: [companyId], references: [id])
+  user    User    @relation(fields: [userId], references: [id])
+
+  @@id([companyId, userId])
+  @@map("user_company")
+}
+
+model Zone {
+  id             BigInt     @id @default(autoincrement())
+  createdAt      DateTime?  @map("created_at") @db.DateTime(6)
+  updatedAt      DateTime?  @map("updated_at") @db.DateTime(6)
+  auctionDuration BigInt    @map("auctionDuration")
+  biome          Biome?
+  chunkCount     Int        @map("chunkCount")
+  displayName    String     @map("displayName") @db.VarChar(255)
+  endedAt        DateTime?  @map("endedAt") @db.DateTime(6)
+  minIncrement   Decimal    @map("minIncrement") @db.Decimal(38, 2)
+  ownerUuid      String?    @map("ownerUuid") @db.Char(36)
+  scheduledStart DateTime   @map("scheduledStart") @db.DateTime(6)
+  startedAt      DateTime?  @map("startedAt") @db.DateTime(6)
+  startingPrice  Decimal    @map("startingPrice") @db.Decimal(38, 2)
+  status         ZoneStatus
+  world          World
+  zoneDuration   BigInt     @map("zoneDuration")
+
+  // Relations
+  playerZoneStates PlayerZoneState[]
+
+  @@map("zones")
+}
+
+// Legacy models from original schema
+model Session {
+  id        String   @id @db.VarChar(255)
+  userId    Int?     @map("user_id")
+  data      Json
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+model MinecraftServer {
+  id          Int      @id @default(autoincrement())
+  name        String   @db.VarChar(100)
+  host        String   @db.VarChar(255)
+  port        Int      @default(25565)
+  description String?  @db.Text
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("minecraft_servers")
+}
