@@ -1,7 +1,5 @@
 import { Server } from 'socket.io';
 import logger from '../config/logger.js';
-import { setupUserHandler } from './handlers/userHandler.js';
-import { setupProductHandler } from './handlers/productHandler.js';
 import { setupAuthHandler } from './handlers/authHandler.js';
 
 /**
@@ -28,8 +26,6 @@ export const setupSocketIO = (httpServer) => {
     });
 
     // Setup des handlers par entité
-    setupUserHandler(socket, io);
-    setupProductHandler(socket, io);
     setupAuthHandler(socket, io);
 
     // Ping générique pour test

@@ -3,17 +3,13 @@ import logger from '../../config/logger.js';
 /**
  * Middleware pour encapsuler les handlers et gérer les erreurs async/sync
  * @param {Function} handler - La fonction handler à protéger
- * @param {string} eventName - Le nom de l'événement (pour les logs)
+ * @param {string} [eventName] - Le nom de l'événement (optionnel, pour les logs)
  * @returns {Function} - Handler protégé contre les erreurs
  */
-export const withErrorHandling = (handler, eventName) => {
+export const withErrorHandling = (handler, eventName = 'unknown') => {
   // Validation des paramètres à la construction
   if (typeof handler !== 'function') {
     throw new Error(`Invalid handler provided to withErrorHandling for event: ${eventName}`);
-  }
-  
-  if (!eventName || typeof eventName !== 'string') {
-    throw new Error('Event name must be a non-empty string for withErrorHandling');
   }
 
   return async (data, callback) => {

@@ -5,10 +5,10 @@ import logger from '../../config/logger.js';
  * Middleware pour valider les données avec Zod avant d'exécuter le handler
  * @param {ZodSchema} schema - Le schéma Zod pour valider
  * @param {Function} handler - La fonction handler à exécuter après validation
- * @param {string} eventName - Le nom de l'événement (pour les logs)
+ * @param {string} [eventName] - Le nom de l'événement (optionnel, pour les logs)
  * @returns {Function} - Handler avec validation automatique
  */
-export const withValidation = (schema, handler, eventName) => {
+export const withValidation = (schema, handler, eventName = 'unknown') => {
   // Validation des paramètres à la construction
   if (!schema || typeof schema?.parse !== 'function') {
     throw new Error(`Invalid schema provided to withValidation for event: ${eventName}`);
@@ -16,10 +16,6 @@ export const withValidation = (schema, handler, eventName) => {
   
   if (typeof handler !== 'function') {
     throw new Error(`Invalid handler provided to withValidation for event: ${eventName}`);
-  }
-  
-  if (!eventName || typeof eventName !== 'string') {
-    throw new Error('Event name must be a non-empty string for withValidation');
   }
 
   return async (data, callback) => {
